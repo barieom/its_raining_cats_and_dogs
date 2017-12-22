@@ -1,0 +1,83 @@
+Michael Frenkel and Barry Eom
+Comp 86
+Assignment #8: It's Raining Cats and Dogs
+12/9/17
+
+This is a ReadMe file that describes the 8th Assignment.
+
+
+A. Purpose
+The purpose of this assignment was to gain experience coding and using a non-wimp
+GUI. We used the head tracking tracking.js API to create a game using javascript
+and HTML/CSS where a user moves a character based on the movement of his/her head
+in order to avoid falling cats and dogs, hence the title.
+
+B. Acknowledgments
+This project was coded by both Barry Eom and Michael Frenkel and used the
+tracking.js API
+
+C. Description of Files
+1. CatsandDogs.html: The HTML file thats allows us to run our program. Contains
+javascript to create a user, game, camera, and catdog class. Uses the tracking.js
+API to implement head tracking and get events from the webcam to process user
+movement.
+
+2. ircad.css: The CSS file containing code that orients all of our messages, images,
+and the canvas in the space of the webpage. It also fonts and sizes of elements
+declared in the HTML file.
+
+3. Image Files: the image files for this program include doge.png, stick-figureright.jpeg,
+stick-figure-left.jpeg, nyancat.jpg, and catdoge.jpg
+
+
+D. How to Run/Compile Program
+In order to run our program please use Google Chrome and drag the HTML file into
+your browser window. Please allow the webpage to access your webcam. Then press
+enter and move your head left or right to move the character. Do not do any sudden
+movements or try to move your head very far in either direction. To stop moving
+in either direction orient your head to the center of the screen. For the 
+character to move left, move your head left. For the character to move right, move
+your head right.
+
+E. Good GUI Design/Practices
+1. One element of our GUI that makes it more natural to use is that we ensured
+that the character moves based on the direction the user moves his head and NOT
+on the direction with which the camera processes the movement because the camera
+retrieves a mirror image of the user's movement and not his natural movement, which
+we made sure to respond to.
+
+2. Another element of our GUI that makes it more natural to use is that if
+the user's head is in the center of the screen the character does not move and
+the head movement required to move the character is subtle enough to prevent
+jerks or sudden movements which could be nauseating and unpleasant.
+
+3. Our GUI also ensured that the character cannot go off the screen so the game 
+flows smoother and it is easier for the user to navigate his character because
+he can see his character at all times. Also, since the GUI has no buttons it is
+very intuitive and easy for the user to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

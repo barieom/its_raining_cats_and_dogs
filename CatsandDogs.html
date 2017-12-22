@@ -1,0 +1,332 @@
+
+<!--    
+Michael Frenkel and Barry Eom
+Comp 86 Assignment #8
+
+This HTML file encompasses the javascript and HTML code for our Assignment #8,
+which involved using a non-wimp user interface to create a game or small project.
+We used head tracking to move a character across a screen in order to dodge 
+falling images of cats and dogs. We have a game class which animates the game and 
+checks for collisions between catdogs (another class), and the user (also a class)
+The camera class calls the game's tick function because the camera is always on
+and is constantly taking in events.
+-->
+
+<!DOCTYPE html>
+
+<html>
+<head>
+
+<meta charset="utf-8">
+<title>It's Raining Cats and Doge</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<link href='https://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" type="text/css" href="ircad.css">
+
+<!--  includes tracking.js libraries -->
+<script src="./tracking.js-master/build/tracking-min.js"></script>
+<script src="./tracking.js-master/build/data/face-min.js"></script>
+</head>
+
+<script type="text/javascript">
+
+
+/*
+ * User Class: This class holds all the information pertaining to the player's 
+ *             character.
+ */
+class User { 
+        constructor (label, xloc, yloc) { 
+                this.xloc = 400;
+                this.yloc = 490;
+                this.speed = 10;
+                this.radius = 25;
+
+        }
+
+        /*
+         * Draws the player everytime this function is called
+         */
+        draw_user (xloc) { 
+                var c = document.getElementById ("MyCanvas"); 
+                var gc = c.getContext("2d"); 
+                drawBackground();
+                var image = document.getElementById ("userleft");
+
+                 if (xloc > 150 && this.xloc >= 23){
+                        this.xloc -= this.speed;
+
+                } else if (xloc <= 125 && this.xloc <= 950) {
+                        this.xloc += this.speed;
+                        image = document.getElementById ("userright");
+                }
+                /*
+                 * the image is drawn offset according to the radius, i.e. the
+                 * size of the image. 
+                 * We do this to handle collisions, which are calculated using
+                 * the radius surrounding the center of the image
+                 */
+                gc.drawImage(image, this.get_adjust_x(), this.get_adjust_y());   
+        }
+
+        /*
+         * Getters and setters for the local variables
+         */
+        get_adjust_x() { return this.xloc - this.radius - 7; }
+        get_adjust_y() { return this.yloc - this.radius; }
+        getX  () { return this.xloc; }
+        getY  () { return this.yloc; }
+        getRad() { return this.radius; }
+}
+
+/*
+ * Cat_Dog Class: This class holds all the information pertaining to the cats
+ *                and dogs falling from the sky
+ */
+class Cat_Dog {
+        constructor (label, type) {
+                this.xloc = (Math.random() * 990) + 0;
+                this.yloc = 15;
+                this.type = type;
+                this.radius_cat = 18;
+                this.radius_dog = 25;
+                this.speed = Math.floor((Math.random() * 10)) + 1; 
+        }
+
+        /*
+         * Draws cat and dog. The location of exactly where the images are 
+         * slightly offset, adjusting for the radius (i.e. size) of the image
+         */
+        draw_cat_dog() {
+                var c = document.getElementById ("MyCanvas"); 
+                var gc = c.getContext("2d"); 
+                this.yloc += this.speed;
+                if (this.type == "cat") {
+                        var image = document.getElementById ("cat");
+                        gc.drawImage(image, this.get_adjust_x_cat(), this.get_adjust_y_cat());
+                } else if (this.type == "dog") {
+                        var image = document.getElementById ("dog");  
+                        gc.drawImage(image, this.get_adjust_x_dog(), this.get_adjust_y_dog());    
+                }
+                
+                
+        }
+
+        /*
+         * Getters and setters for the local variables
+         */
+        get_adjust_x_cat() { return this.xloc - this.radius_cat - 2; }
+        get_adjust_y_cat() { return this.yloc - this.radius_cat + 2; }
+        get_adjust_x_dog() { return this.xloc - this.radius_dog; }
+        get_adjust_y_dog() { return this.yloc - this.radius_dog - 7; }
+        getX  () { return this.xloc; }
+        getY  () { return this.yloc; }
+        getRad() { 
+                if (this.type == "cat") {
+                        return this.radius_cat; 
+                } else if (this.type == "dog") {
+                        return this.radius_dog;
+                }
+        }
+}
+
+/* 
+ * Game class: This class handles all the 'working part' of this game, holding
+ *             functions that run everything
+ */
+class Game {
+        constructor () {
+                this.catdog = [];    
+                this.gameover = false;
+                this.Dimension_X = 1000;
+                this.Dimension_Y = 600;
+                this.num_catdg   = 1;
+        }
+
+
+        /*
+         * Calling tick will invoke a 'tick,' i.e. animation to move one frame
+         * Collision between the player's character and the falling objects
+         * are handled here as well
+         */
+        tick(user) {
+                this.addCatDog();
+                this.animate();
+                for (var i = 0; i < this.catdog.length; i++) {
+                        if (this.collision(user, this.catdog[i])) {
+                              this.gameover = true;
+                                //console.log("It collided!!!\n");
+                                
+                        } else if (this.hitground_catdog(this.catdog[i])) {
+                                this.remove_catdog(this.catdog[i]);
+                        }
+                }
+        }
+
+        /* 
+         * This draws the cat dogs
+         */
+        animate(){
+                for (var i = 0; i < this.catdog.length; i++)  {
+                        this.catdog[i].draw_cat_dog();
+                }
+        }
+
+        /*
+         * Randomly adds cats and dogs falling from the sky using random
+         * number generator
+         */
+        addCatDog() {
+                var newcatdog = Math.floor((Math.random() * 40)) + 1; 
+                if (newcatdog == 5) {
+                        this.catdog.push(new Cat_Dog("none", "cat"));
+                }
+                if (newcatdog == 6) {
+                        this.catdog.push(new Cat_Dog("none", "dog"));
+                }
+        }
+
+        /*
+         * Checks whether a catdog has hit the ground or not
+         */
+        hitground_catdog(obj) {
+                return (obj.getY() > this.Dimension_Y)
+        }
+
+        /*
+         * This removes the cat dog
+         */
+        remove_catdog(object) {
+                this.catdog.splice(this.catdog.indexOf(object), 1);
+        }
+
+        /*
+         * The most important aspect of this game. Returns true if the user
+         * has collided into one of the falling modules. It does so by 
+         * calculating the distance between the two objects and checking if it
+         * is less than their two combined radii.
+         */
+        collision(obj1, obj2) {
+                var distance = Math.sqrt(Math.pow(obj1.getX() - obj2.getX(), 2) 
+                                  + Math.pow(obj1.getY() - obj2.getY(), 2));
+                var crashed_dist = obj1.getRad() + obj2.getRad();
+                return distance < crashed_dist;
+        }
+
+}
+
+
+
+
+class Camera {
+        constructor(game, user) 
+        {
+                  var video = document.getElementById ('video');
+                  var c = document.getElementById ('MyCanvas');
+                  var gc = c.getContext ('2d');
+                  var tracker = new tracking.ObjectTracker ('face');
+
+                  tracker.setInitialScale (3);
+                  tracker.setStepSize (1);
+                  tracker.setEdgesDensity (0.1);
+                  tracking.track ('#video', tracker, { camera: true });
+
+                  tracker.on ('track', function(event) { 
+                        for (var rect of event.data) {            
+                                this.xloc =  (rect.x + rect.width)/2
+                                this.yloc =  (rect.y + rect.height)/2
+                        }
+                        user.draw_user(this.xloc);
+                        if (game.gameover)
+                        {
+                            var c = document.getElementById ("MyCanvas"); 
+                            var gc = c.getContext("2d"); 
+
+                            // Clear background
+                            gc.fillStyle = "white"; 
+                            gc.fillRect (0, 0, c.width, c.height);
+                            document.getElementById('end-game').innerHTML = "You got soaked! Game Over";
+                            return;
+                        }
+                        else
+                            game.tick(user);
+                  });
+                  return;
+                  
+        }
+}
+
+
+// Just a common code fragment, not a genuine repaint callback,
+// redraws the non-changeable stuff
+function drawBackground () { 
+    var c = document.getElementById ("MyCanvas"); 
+    var gc = c.getContext("2d"); 
+    var image = document.getElementById ("background");
+
+    // Clear background
+    gc.fillStyle = "white"; 
+    gc.fillRect (0, 0, c.width, c.height);
+    gc.drawImage(image, 0, 0); 
+
+    // Same line as in the java version
+    gc.strokeStyle = "black" 
+}
+
+
+GameStart = function(e) {
+        $('.welcome-message').toggleClass('show');
+        $('.play-game').toggleClass('show');
+        if(e.keyCode == 13) {
+                drawBackground();
+                var u = new User ("user", 500, 980);
+                var g = new Game();
+                var c = new Camera(g, u);
+        }
+}
+
+StartScreen = function(e) {
+        window.addEventListener("keydown", this.GameStart.bind(this));
+}
+
+/*
+ * To show inheritance syntax
+ */
+
+window.onload = function () {
+        $('.welcome-message').toggleClass('show');
+        $('.play-game').toggleClass('show');
+        window.addEventListener("keydown", this.GameStart.bind(this));
+}
+
+</script> 
+
+
+<body>
+<section class = "game-window group">
+        <div class = "play-game">
+                Hit <span class="keyword">Enter</span> to Play
+                <p>Dodge the balls with your head movements!</p>
+        </div>
+        <div id = "end-game">
+        </div>
+<canvas id="MyCanvas" width="1000" height="600" style= "border:1px solid #000000;" style="z-index:1000; position: absolute; top: 0px; left: 0px;"> 
+</canvas>
+<div class = "authors">Comp86 project by Barry Eom and Michael Frenkel</div>
+</section>
+<video id="video" width="400" height="240" preload autoplay loop muted></video>
+
+
+<img src="stick-figureright.jpeg" id = "userright"  alt="user" style="display: none;" style="width:200px;height:200px;">
+<img src="stick-figureleft.jpeg" id = "userleft"  alt="user" style="display: none;" style="width:200px;height:200px;">
+<img src="nyancat.jpg" id = "cat"  alt="user" style="display: none;" style="width:200px;height:200px;">
+
+<img src="catdoge.jpg" id = "background"  alt="user" style="display: none;" style="width:1000px;height:600px;">
+<img src="doge.png" id = "dog"  alt="user" style="display: none;" style="width:200px;height:200px;">
+
+<br />
+&nbsp;
+</div>
+</body>
+</html>
